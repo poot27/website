@@ -1,0 +1,158 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+	<title>OpenAI API Demo</title>
+	<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+	<script>
+		function generateCompletion() {
+			const prompt = document.getElementById("completion-prompt").value;
+			const model = document.getElementById("completion-model").value;
+			const temperature = document.getElementById("completion-temperature").value;
+			const maxTokens = document.getElementById("completion-max-tokens").value;
+			const requestBody = {
+				prompt: prompt,
+				model: model,
+				temperature: temperature,
+				max_tokens: maxTokens,
+			};
+			axios.post("https://api.openai.com/v1/completions", requestBody, {
+				headers: {
+					"Content-Type": "application/json",
+					"Authorization": "Bearer YOUR_API_KEY_HERE",
+				},
+			})
+			.then((response) => {
+				document.getElementById("generated-text").innerHTML = response.data.choices[0].text;
+			})
+			.catch((error) => {
+				console.error(error);
+			});
+		}
+
+		function generateImage() {
+			const prompt = document.getElementById("image-prompt").value;
+			const requestBody = {
+				prompt: prompt,
+			};
+			axios.post("https://api.openai.com/v1/images/generations", requestBody, {
+				headers: {
+					"Content-Type": "application/json",
+					"Authorization": "Bearer YOUR_API_KEY_HERE",
+				},
+			})
+			.then((response) => {
+				document.getElementById("generated-image").innerHTML = "<img src='" + response.data.data[0].url + "' />";
+			})
+			.catch((error) => {
+				console.error(error);
+			});
+		}
+
+		function generateChat() {
+			const prompt = document.getElementById("chat-prompt").value;
+			const requestBody = {
+				prompt: prompt,
+				temperature: 0.7,
+				max_tokens: 150,
+				stop: "\n",
+			};
+			axios.post("https://api.openai.com/v1/engines/davinci-codex/completions", requestBody, {
+				headers: {
+					"Content-Type": "application/json",
+					"Authorization": "Bearer YOUR_API_KEY_HERE",
+				},
+			})
+			.then((response) => {
+				document.getElementById("chat-log").innerHTML += "<p>You: " + prompt + "</p><p>AI: " + response.data.choices[0].text + "</p>";
+			})
+			.catch((error) => {
+				console.error(error);
+			});
+		}
+
+		function generateAudio() {
+			const prompt = document.getElementById("audio-prompt").value;
+			const requestBody = {
+				text: prompt,
+				speaker: "ada",
+			};
+			axios.post("https://api.openai.com/v1/sounds/tts", requestBody, {
+				headers: {
+					"Content-Type": "application/json",
+					"Authorization": "Bearer YOUR_API_KEY_HERE",
+				},
+			})
+			.then((response) => {
+				document.getElementById("generated-audio").innerHTML = "<audio controls><source src='" + response.data.data[0].url + "' type='audio/wav' /></audio>";
+			})
+			.catch((error) => {
+				console.error(error);
+			});
+		}
+	</script>
+</head>
+
+<body>
+	<ul>
+		<li>
+			<a href="#" onclick="document.getElementById('completion').style.display = 'block'; document.getElementById('image').style.display = 'none'; document.getElementById('chat').style.display = 'none'; document.getElementById('audio').style.display = 'none'; return false;">Text Completions</a>
+		</li>
+		<li>
+			<a href="#" onclick="document.getElementById('completion').style.display = 'none'; document.getElementById('image').style.display = 'block'; document.getElementById('chat').style.display = 'none'; document.getElementById('audio').style.display = 'none'; return false;">Image Generation</a>
+		</li>
+		<li>
+			<a href="#" onclick="document.getElementById('completion').style.display = 'none'; document.getElementById('image').style.display = 'none'; document.getElementById('chat').style.display = 'block'; document.getElementById('audio').style.display = 'none'; return false;">AI Chat</a>
+		</li>
+		<li>
+			<a href="#" onclick="document.getElementById('completion').style.display = 'none'; document.getElementById('image').style.display = 'none'; document.getElementById('chat').style.display = 'none'; document.getElementById('audio').style.display = 'block'; return false;">Text-to-Speech</a>
+		</li>
+	</ul>
+	
+	<div id="completion">
+		<h2>Text Completions</h2>
+		<label for="completion-prompt">Prompt:</label><br>
+		<textarea id="completion-prompt" name="completion-prompt" rows="4" cols="50"></textarea><br>
+		<label for="completion-model">Model:</label>
+		<select id="completion-model" name="completion-model">
+			<option value="davinci">Davinci</option>
+			<option value="curie">Curie</option>
+			<option value="babbage">Babbage</option>
+			<option value="ada">Ada</option>
+		</select><br>
+		<label for="completion-temperature">Temperature:</label><br>
+		<input type="number" id="completion-temperature" name="completion-temperature" min="0" max="1" step="0.01" value="0.5"><br>
+		<label for="completion-max-tokens">Max Tokens:</label><br>
+		<input type="number" id="completion-max-tokens" name="completion-max-tokens" min="1" max="2048" value="64"><br><br>
+		<button onclick="generateCompletion()">Generate Completion</button>
+		<div id="generated-text"></div>
+	</div>
+	
+	<div id="image" style="display:none;">
+		<h2>Image Generation</h2>
+		<label for="image-prompt">Prompt:</label><br>
+		<textarea id="image-prompt" name="image-prompt" rows="4" cols="50"></textarea><br><br>
+		<button onclick="generateImage()">Generate Image</button>
+		<div id="generated-image"></div>
+	</div>
+	
+	<div id="chat" style="display:none;">
+		<h2>AI Chat</h2>
+		<label for="chat-prompt">Message:</label><br>
+		<textarea id="chat-prompt" name="chat-prompt" rows="4" cols="50"></textarea><br><br>
+		<button onclick="generateChat()">Send Message</button>
+		<div id="chat-log"></div>
+	</div>
+
+	<div id="audio" style="display:none;">
+		<h2>Text-to-Speech</h2>
+		<label for="audio-text">Text:</label><br>
+		<textarea id="audio-text" name="audio-text" rows="4" cols="50"></textarea><br><br>
+		<button onclick="generateAudio()">Generate Audio</button>
+		<audio id="generated-audio" controls></audio>
+	</div>
+	
+	<script src="https://cdn.jsdelivr.net/npm/@openai/api@0.6.3/dist/openai-api.min.js"></script>
+	<script src="./script.js"></script>
+</body>
+</html>
